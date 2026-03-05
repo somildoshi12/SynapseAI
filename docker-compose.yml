@@ -1,60 +1,20 @@
 # ============================================================
 # LOCAL AI STACK — MacBook Air M4 16GB
-# Services: Open WebUI · SearXNG · Flowise · n8n
+# Services: SearXNG · Flowise · n8n
 # Ollama runs natively via Homebrew on host (port 11434)
-# Start: docker compose up -d
-# Stop:  docker compose down
+# SynapseAI custom frontend runs locally (see frontend/ + backend/)
+#
+# Start:  docker compose up -d
+# Stop:   docker compose down
+# Custom frontend: cd frontend && npm run dev
+# Custom backend:  cd backend && uvicorn main:app --reload
 # ============================================================
 
 services:
 
   # ─────────────────────────────────────────
-  # 1. OPEN WEBUI — ChatGPT-style interface
-  #    Web search ON by default
-  #    File uploads: PDF, images, docs
-  #    RAG: built-in with ChromaDB
-  #    UI: http://localhost:3000
-  # ─────────────────────────────────────────
-  open-webui:
-    image: ghcr.io/open-webui/open-webui:main
-    container_name: open-webui
-    restart: unless-stopped
-    ports:
-      - "3000:8080"
-    volumes:
-      - open_webui_data:/app/backend/data
-    environment:
-      # Connect to native Ollama on host
-      - OLLAMA_BASE_URL=http://host.docker.internal:11434
-
-      # Web Search — SearXNG (enabled by default)
-      - ENABLE_RAG_WEB_SEARCH=true
-      - RAG_WEB_SEARCH_ENGINE=searxng
-      - SEARXNG_QUERY_URL=http://searxng:8080/search?q=<query>&format=json
-      - RAG_WEB_SEARCH_RESULT_COUNT=5
-      - RAG_WEB_SEARCH_CONCURRENT_REQUESTS=10
-
-      # RAG / Document settings
-      - RAG_EMBEDDING_ENGINE=ollama
-      - RAG_EMBEDDING_MODEL=mxbai-embed-large
-      - RAG_OLLAMA_BASE_URL=http://host.docker.internal:11434
-      - CHUNK_SIZE=1500
-      - CHUNK_OVERLAP=100
-
-      # File uploads
-      - ENABLE_IMAGE_GENERATION=false
-
-      # Auth (set to false for local personal use — no login needed)
-      - WEBUI_AUTH=false
-
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    depends_on:
-      - searxng
-
-  # ─────────────────────────────────────────
-  # 2. SEARXNG — Private self-hosted search
-  #    Powers web search in Open WebUI
+  # 1. SEARXNG — Private self-hosted search
+  #    Powers web search in SynapseAI
   #    UI: http://localhost:8080
   # ─────────────────────────────────────────
   searxng:
@@ -77,10 +37,10 @@ services:
       - DAC_OVERRIDE
 
   # ─────────────────────────────────────────
-  # 3. FLOWISE — Visual AI workflow builder
+  # 2. FLOWISE — Visual AI workflow builder
   #    LangChain-powered, drag-and-drop
   #    Build RAG pipelines, agents, chatbots
-  #    UI: http://localhost:3001
+  #    UI: http://localhost:3001  login: admin / localai123
   # ─────────────────────────────────────────
   flowise:
     image: flowiseai/flowise:latest
@@ -98,16 +58,14 @@ services:
       - APIKEY_PATH=/root/.flowise
       - SECRETKEY_PATH=/root/.flowise
       - LOG_PATH=/root/.flowise/logs
-      # Point to Ollama (use host.docker.internal for Mac)
       - OLLAMA_BASE_URL=http://host.docker.internal:11434
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
   # ─────────────────────────────────────────
-  # 4. N8N — Automation workflow engine
+  # 3. N8N — Automation workflow engine
   #    Automate tasks with 400+ integrations
-  #    Connect AI to Gmail, Notion, Sheets etc.
-  #    UI: http://localhost:5678
+  #    UI: http://localhost:5678  login: admin@local.ai / Admin12345
   # ─────────────────────────────────────────
   n8n:
     image: n8nio/n8n:latest
@@ -123,23 +81,17 @@ services:
       - N8N_PROTOCOL=http
       - NODE_ENV=production
       - WEBHOOK_URL=http://localhost:5678
-      # Connect n8n to Ollama for AI nodes
       - N8N_AI_ENABLED=true
-      # Disable telemetry
       - N8N_DIAGNOSTICS_ENABLED=false
       - N8N_VERSION_NOTIFICATIONS_ENABLED=false
-      # Skip first-run owner setup (credentials set by init.sh)
       - N8N_SKIP_OWNER_SETUP=true
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
 # ─────────────────────────────────────────
 # PERSISTENT VOLUMES
-# All data survives container restarts
 # ─────────────────────────────────────────
 volumes:
-  open_webui_data:
-    driver: local
   searxng_data:
     driver: local
   flowise_data:
