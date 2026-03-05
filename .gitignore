@@ -1,0 +1,22 @@
+# OS
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+
+# Secrets / local overrides
+.env
+.env.*
+*.secret
+
+# Docker volumes (data stays local)
+volumes/
+data/
+
+# Logs
+*.log
+
+# Editor
+.vscode/
+.idea/
+*.swp

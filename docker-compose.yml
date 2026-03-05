@@ -1,0 +1,148 @@
+# ============================================================
+# LOCAL AI STACK — MacBook Air M4 16GB
+# Services: Open WebUI · SearXNG · Flowise · n8n
+# Ollama runs natively via Homebrew on host (port 11434)
+# Start: docker compose up -d
+# Stop:  docker compose down
+# ============================================================
+
+services:
+
+  # ─────────────────────────────────────────
+  # 1. OPEN WEBUI — ChatGPT-style interface
+  #    Web search ON by default
+  #    File uploads: PDF, images, docs
+  #    RAG: built-in with ChromaDB
+  #    UI: http://localhost:3000
+  # ─────────────────────────────────────────
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    ports:
+      - "3000:8080"
+    volumes:
+      - open_webui_data:/app/backend/data
+    environment:
+      # Connect to native Ollama on host
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+
+      # Web Search — SearXNG (enabled by default)
+      - ENABLE_RAG_WEB_SEARCH=true
+      - RAG_WEB_SEARCH_ENGINE=searxng
+      - SEARXNG_QUERY_URL=http://searxng:8080/search?q=<query>&format=json
+      - RAG_WEB_SEARCH_RESULT_COUNT=5
+      - RAG_WEB_SEARCH_CONCURRENT_REQUESTS=10
+
+      # RAG / Document settings
+      - RAG_EMBEDDING_ENGINE=ollama
+      - RAG_EMBEDDING_MODEL=mxbai-embed-large
+      - RAG_OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - CHUNK_SIZE=1500
+      - CHUNK_OVERLAP=100
+
+      # File uploads
+      - ENABLE_IMAGE_GENERATION=false
+
+      # Auth (set to false for local personal use — no login needed)
+      - WEBUI_AUTH=false
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - searxng
+
+  # ─────────────────────────────────────────
+  # 2. SEARXNG — Private self-hosted search
+  #    Powers web search in Open WebUI
+  #    UI: http://localhost:8080
+  # ─────────────────────────────────────────
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - searxng_data:/etc/searxng
+    environment:
+      - SEARXNG_BASE_URL=http://localhost:8080
+      - SEARXNG_SECRET_KEY=localai_secret_key_change_this
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+      - DAC_OVERRIDE
+
+  # ─────────────────────────────────────────
+  # 3. FLOWISE — Visual AI workflow builder
+  #    LangChain-powered, drag-and-drop
+  #    Build RAG pipelines, agents, chatbots
+  #    UI: http://localhost:3001
+  # ─────────────────────────────────────────
+  flowise:
+    image: flowiseai/flowise:latest
+    container_name: flowise
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    volumes:
+      - flowise_data:/root/.flowise
+    environment:
+      - PORT=3000
+      - FLOWISE_USERNAME=admin
+      - FLOWISE_PASSWORD=localai123
+      - DATABASE_PATH=/root/.flowise
+      - APIKEY_PATH=/root/.flowise
+      - SECRETKEY_PATH=/root/.flowise
+      - LOG_PATH=/root/.flowise/logs
+      # Point to Ollama (use host.docker.internal for Mac)
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # ─────────────────────────────────────────
+  # 4. N8N — Automation workflow engine
+  #    Automate tasks with 400+ integrations
+  #    Connect AI to Gmail, Notion, Sheets etc.
+  #    UI: http://localhost:5678
+  # ─────────────────────────────────────────
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://localhost:5678
+      # Connect n8n to Ollama for AI nodes
+      - N8N_AI_ENABLED=true
+      # Disable telemetry
+      - N8N_DIAGNOSTICS_ENABLED=false
+      - N8N_VERSION_NOTIFICATIONS_ENABLED=false
+      # Skip first-run owner setup (credentials set by init.sh)
+      - N8N_SKIP_OWNER_SETUP=true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+# ─────────────────────────────────────────
+# PERSISTENT VOLUMES
+# All data survives container restarts
+# ─────────────────────────────────────────
+volumes:
+  open_webui_data:
+    driver: local
+  searxng_data:
+    driver: local
+  flowise_data:
+    driver: local
+  n8n_data:
+    driver: local
