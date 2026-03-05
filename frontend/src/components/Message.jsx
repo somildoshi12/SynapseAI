@@ -31,13 +31,36 @@ const MODEL_LABELS = {
   'llama3.2:latest':     'Llama 3.2',
 }
 
-export default function Message({ role, content, model, search, isStreaming }) {
+function AttachmentPreview({ meta }) {
+  if (!meta) return null
+  if (meta.type === 'image' && meta.file_url) {
+    return (
+      <div className="msg-attachment msg-attachment-image">
+        <img src={meta.file_url} alt={meta.name} className="msg-img-thumb" />
+        <span className="msg-attachment-name">{meta.name}</span>
+      </div>
+    )
+  }
+  return (
+    <div className="msg-attachment msg-attachment-file">
+      <span className="msg-attachment-icon">
+        {meta.name?.endsWith('.pdf') ? '📕' : '📄'}
+      </span>
+      <div className="msg-attachment-info">
+        <span className="msg-attachment-name">{meta.name}</span>
+        <span className="msg-attachment-type">{meta.type === 'text' ? 'Text file' : meta.type}</span>
+      </div>
+    </div>
+  )
+}
+
+export default function Message({ role, content, model, search, isStreaming, attachment_meta }) {
   const [showThinking, setShowThinking] = useState(false)
 
   // Extract <think>...</think> from DeepSeek R1
   const thinkMatch = content.match(/<think>([\s\S]*?)<\/think>/)
-  const thinking = thinkMatch?.[1]?.trim()
-  const display  = content.replace(/<think>[\s\S]*?<\/think>/g, '').trim()
+  const thinking   = thinkMatch?.[1]?.trim()
+  const display    = content.replace(/<think>[\s\S]*?<\/think>/g, '').trim()
 
   const label = MODEL_LABELS[model] ?? model
 
@@ -64,7 +87,10 @@ export default function Message({ role, content, model, search, isStreaming }) {
 
       <div className="message-body">
         {role === 'user' ? (
-          <p className="user-text">{content}</p>
+          <>
+            {attachment_meta && <AttachmentPreview meta={attachment_meta} />}
+            {content.trim() && <p className="user-text">{content}</p>}
+          </>
         ) : (
           <>
             <ReactMarkdown

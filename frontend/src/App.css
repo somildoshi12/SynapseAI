@@ -476,6 +476,39 @@ body {
 .send-btn:hover:not(:disabled) { background: var(--accent-hover); }
 .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+.stop-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #f38ba8;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.stop-btn:hover { background: #e06c89; }
+
+.attach-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.attach-btn:hover:not(:disabled) { background: var(--bg-surface); color: var(--text); }
+.attach-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
 .spinner {
   width: 14px;
   height: 14px;
@@ -484,13 +517,114 @@ body {
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
+.spinner-sm {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: var(--text-muted);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Attachment Preview ────────────────────────────────────────────────────── */
+.attachment-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  margin-bottom: 8px;
+  max-width: fit-content;
+}
+.attachment-thumb {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+.attachment-icon { font-size: 18px; line-height: 1; }
+.attachment-name {
+  font-size: 13px;
+  color: var(--text);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.attachment-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+  transition: color 0.12s;
+}
+.attachment-remove:hover { color: #f38ba8; }
 
 .input-hint {
   font-size: 11px;
   color: var(--text-muted);
   text-align: center;
   margin-top: 8px;
+}
+
+/* ── Message-level file attachment preview (like Claude) ──────────────────── */
+.msg-attachment {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  max-width: 280px;
+}
+
+.msg-attachment-image {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.msg-img-thumb {
+  width: 100%;
+  max-width: 260px;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: block;
+}
+
+.msg-attachment-file {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+}
+.msg-attachment-icon { font-size: 22px; flex-shrink: 0; }
+.msg-attachment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+.msg-attachment-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+.msg-attachment-type {
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
 /* ── Scrollbar ────────────────────────────────────────────────────────────── */
