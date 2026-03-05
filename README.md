@@ -1,6 +1,6 @@
 # SynapseAI
 
-A fully self-hosted, 100% private local AI stack that runs entirely on your Mac. No API keys, no subscriptions, no data leaving your machine — ever.
+A fully self-hosted, 100% private local AI stack that runs entirely on your Mac or Windows (via WSL2). No API keys, no subscriptions, no data leaving your machine — ever.
 
 Built with a custom ChatGPT-like React frontend, a FastAPI streaming backend, local LLMs via Ollama, and a Docker-powered support stack (private search, visual AI builder, automation engine).
 
@@ -8,14 +8,14 @@ Built with a custom ChatGPT-like React frontend, a FastAPI streaming backend, lo
 
 ## What's Inside
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| **Frontend** | React 18 + Vite | ChatGPT-style chat UI |
-| **Backend** | FastAPI + uvicorn | Streaming API, model routing, file uploads |
-| **LLM Runtime** | Ollama (Homebrew) | Runs all models locally on Apple Silicon |
-| **Search** | SearXNG (Docker) | Private web search, zero tracking |
-| **Visual AI Builder** | Flowise (Docker) | Drag-and-drop LangChain pipelines |
-| **Automation** | n8n (Docker) | 400+ integrations, workflow automation |
+| Layer                 | Technology        | Purpose                                    |
+| --------------------- | ----------------- | ------------------------------------------ |
+| **Frontend**          | React 18 + Vite   | ChatGPT-style chat UI                      |
+| **Backend**           | FastAPI + uvicorn | Streaming API, model routing, file uploads |
+| **LLM Runtime**       | Ollama (Homebrew) | Runs all models locally on Apple Silicon   |
+| **Search**            | SearXNG (Docker)  | Private web search, zero tracking          |
+| **Visual AI Builder** | Flowise (Docker)  | Drag-and-drop LangChain pipelines          |
+| **Automation**        | n8n (Docker)      | 400+ integrations, workflow automation     |
 
 ---
 
@@ -33,12 +33,12 @@ Built with a custom ChatGPT-like React frontend, a FastAPI streaming backend, lo
 
 ## Model Stack
 
-| Role | Model | Pull Command | Size |
-|---|---|---|---|
-| Coding + General + Vision | Qwen3.5 9B | `ollama pull qwen3.5:9b` | ~6.6 GB |
-| Reasoning + Math | DeepSeek R1 8B | `ollama pull deepseek-r1:8b` | ~5.0 GB |
-| Vision (alternative) | Llama 3.2 Vision 11B | `ollama pull llama3.2-vision:11b` | ~8.0 GB |
-| RAG Embeddings | mxbai-embed-large | `ollama pull mxbai-embed-large` | ~0.7 GB |
+| Role                      | Model                | Pull Command                      | Size    |
+| ------------------------- | -------------------- | --------------------------------- | ------- |
+| Coding + General + Vision | Qwen3.5 9B           | `ollama pull qwen3.5:9b`          | ~6.6 GB |
+| Reasoning + Math          | DeepSeek R1 8B       | `ollama pull deepseek-r1:8b`      | ~5.0 GB |
+| Vision (alternative)      | Llama 3.2 Vision 11B | `ollama pull llama3.2-vision:11b` | ~8.0 GB |
+| RAG Embeddings            | mxbai-embed-large    | `ollama pull mxbai-embed-large`   | ~0.7 GB |
 
 > **RAM note:** Ollama loads only one model at a time and unloads it after 30 minutes of inactivity. On a 16 GB Mac, you never exceed ~9 GB for the largest model.
 
@@ -75,14 +75,26 @@ SynapseAI/
 
 Make sure the following are installed before you begin.
 
-| Requirement | Install | Verify |
-|---|---|---|
-| macOS Apple Silicon | — | — |
-| Homebrew | `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` | `brew --version` |
-| Docker Desktop | [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/) | `docker --version` |
-| Ollama | `brew install ollama` | `ollama --version` |
-| Python 3.10+ | `brew install python` | `python3 --version` |
-| Node.js 18+ | `brew install node` | `node --version` |
+### macOS (Apple Silicon)
+
+| Requirement    | Install                                                                                           | Verify              |
+| -------------- | ------------------------------------------------------------------------------------------------- | ------------------- |
+| Homebrew       | `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` | `brew --version`    |
+| Docker Desktop | [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/)             | `docker --version`  |
+| Ollama         | `brew install ollama`                                                                             | `ollama --version`  |
+| Python 3.10+   | `brew install python`                                                                             | `python3 --version` |
+| Node.js 18+    | `brew install node`                                                                               | `node --version`    |
+
+### Windows 11 (with WSL2)
+
+| Requirement    | Install                                                                                                                    | Verify             |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| WSL2           | Open PowerShell as Admin and run: `wsl --install`                                                                          | `wsl --status`     |
+| Git Bash       | Download from [gitforwindows.org](https://gitforwindows.org/) (for running `.sh` scripts)                                  | `git --version`    |
+| Docker Desktop | [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/) (Enable WSL integration in settings) | `docker --version` |
+| Ollama         | Download Windows installer from [ollama.com](https://ollama.com/download/windows)                                          | `ollama --version` |
+| Python 3.10+   | Download from [python.org](https://www.python.org/downloads/)                                                              | `python --version` |
+| Node.js 18+    | Download from [nodejs.org](https://nodejs.org/)                                                                            | `node --version`   |
 
 ---
 
@@ -97,6 +109,7 @@ cd SynapseAI
 
 ### 2 — Configure Ollama environment
 
+**For macOS:**
 Add these to your `~/.zshrc` for GPU acceleration and memory management:
 
 ```bash
@@ -106,7 +119,17 @@ echo 'export OLLAMA_KEEP_ALIVE=30m'  >> ~/.zshrc
 source ~/.zshrc
 ```
 
-Start Ollama:
+**For Windows:**
+Set the environment variables globally via PowerShell:
+
+```powershell
+[System.Environment]::SetEnvironmentVariable('OLLAMA_NUM_GPU', '1', 'User')
+[System.Environment]::SetEnvironmentVariable('OLLAMA_KEEP_ALIVE', '30m', 'User')
+```
+
+_(Restart your terminal/Ollama for these to take effect)._
+
+Start Ollama (if not already running):
 
 ```bash
 ollama serve &
@@ -149,6 +172,7 @@ bash init.sh
 ```
 
 This script:
+
 - Verifies Ollama is running
 - Pulls any missing models
 - Waits for containers to be healthy
@@ -157,10 +181,21 @@ This script:
 
 ### 6 — Install Python dependencies
 
+**macOS / Linux:**
+
 ```bash
 cd backend
 python3 -m venv .venv
 source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+**Windows (Git Bash / PowerShell):**
+
+```powershell
+cd backend
+python -m venv .venv
+.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
@@ -180,18 +215,30 @@ You need three things running simultaneously: Ollama, the FastAPI backend, and t
 ### Option A — Quickstart (three separate terminals)
 
 **Terminal 1 — Ollama** (skip if already running):
+
 ```bash
 ollama serve
 ```
 
 **Terminal 2 — Backend:**
+For macOS/Linux:
+
 ```bash
 cd backend
 source .venv/bin/activate
 uvicorn main:app --reload --port 8000
 ```
 
+For Windows:
+
+```powershell
+cd backend
+.venv\Scripts\activate
+uvicorn main:app --reload --port 8000
+```
+
 **Terminal 3 — Frontend:**
+
 ```bash
 cd frontend
 npm run dev
@@ -211,14 +258,14 @@ bash start.sh
 
 ## Service URLs
 
-| Service | URL | Credentials |
-|---|---|---|
-| SynapseAI Chat | http://localhost:5173 | — |
-| FastAPI Backend | http://localhost:8000 | — |
-| Ollama API | http://localhost:11434 | — |
-| SearXNG | http://localhost:8080 | — |
-| Flowise | http://localhost:3001 | `admin` / `localai123` |
-| n8n | http://localhost:5678 | `admin@local.ai` / `Admin12345` |
+| Service         | URL                    | Credentials                     |
+| --------------- | ---------------------- | ------------------------------- |
+| SynapseAI Chat  | http://localhost:5173  | —                               |
+| FastAPI Backend | http://localhost:8000  | —                               |
+| Ollama API      | http://localhost:11434 | —                               |
+| SearXNG         | http://localhost:8080  | —                               |
+| Flowise         | http://localhost:3001  | `admin` / `localai123`          |
+| n8n             | http://localhost:5678  | `admin@local.ai` / `Admin12345` |
 
 ---
 
@@ -226,29 +273,30 @@ bash start.sh
 
 ### API Endpoints
 
-| Method | Path | Description |
-|---|---|---|
-| `POST` | `/api/chat` | Streaming chat (SSE) |
-| `GET` | `/api/models` | List available Ollama models |
+| Method | Path          | Description                     |
+| ------ | ------------- | ------------------------------- |
+| `POST` | `/api/chat`   | Streaming chat (SSE)            |
+| `GET`  | `/api/models` | List available Ollama models    |
 | `POST` | `/api/upload` | Upload image, PDF, or text file |
-| `GET` | `/api/health` | Health check |
+| `GET`  | `/api/health` | Health check                    |
 
 ### Semantic Model Router
 
 The backend automatically selects the best model based on keyword analysis of the user's message:
 
-| Query type | Selected model |
-|---|---|
-| Coding, debugging, scripts | `qwen3.5:9b` |
-| Math, logic, step-by-step reasoning | `deepseek-r1:8b` |
-| Image attached | `llama3.2-vision:11b` |
-| General chat, writing, summarization | `llama3.2:latest` |
+| Query type                           | Selected model        |
+| ------------------------------------ | --------------------- |
+| Coding, debugging, scripts           | `qwen3.5:9b`          |
+| Math, logic, step-by-step reasoning  | `deepseek-r1:8b`      |
+| Image attached                       | `llama3.2-vision:11b` |
+| General chat, writing, summarization | `llama3.2:latest`     |
 
 Set `model` to any specific model name in the request to override routing.
 
 ### Web Search
 
 When `web_search: true` is included in the chat request, the backend:
+
 1. Sends the user's last message to SearXNG
 2. Takes the top 4 results
 3. Injects them as a system message before calling Ollama
@@ -300,6 +348,7 @@ ollama pull modelname
 ## Troubleshooting
 
 **Backend can't reach Ollama**
+
 ```bash
 # Make sure Ollama is running
 ollama serve &
@@ -307,6 +356,7 @@ curl http://localhost:11434/api/tags
 ```
 
 **SearXNG returns HTML instead of JSON**
+
 ```bash
 docker exec searxng sed -i '/^  formats:/a\    - json' /etc/searxng/settings.yml
 docker restart searxng
@@ -334,15 +384,15 @@ lsof -i :8080   # example for SearXNG port
 
 ## Storage Summary
 
-| Item | Size |
-|---|---|
-| Qwen3.5 9B | ~6.6 GB |
-| DeepSeek R1 8B | ~5.0 GB |
-| mxbai-embed-large | ~0.7 GB |
-| Llama 3.2 Vision 11B (optional) | ~8.0 GB |
-| Docker images (3 services) | ~2.0 GB |
-| **Total (without Vision)** | **~14.3 GB** |
-| **Total (with Vision)** | **~22.3 GB** |
+| Item                            | Size         |
+| ------------------------------- | ------------ |
+| Qwen3.5 9B                      | ~6.6 GB      |
+| DeepSeek R1 8B                  | ~5.0 GB      |
+| mxbai-embed-large               | ~0.7 GB      |
+| Llama 3.2 Vision 11B (optional) | ~8.0 GB      |
+| Docker images (3 services)      | ~2.0 GB      |
+| **Total (without Vision)**      | **~14.3 GB** |
+| **Total (with Vision)**         | **~22.3 GB** |
 
 ---
 
@@ -358,4 +408,4 @@ lsof -i :8080   # example for SearXNG port
 
 ---
 
-*All tools are free and open-source. All data stays on your Mac. No telemetry, no cloud, no cost.*
+_All tools are free and open-source. All data stays on your Mac. No telemetry, no cloud, no cost._
